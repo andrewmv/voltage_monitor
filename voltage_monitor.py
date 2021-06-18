@@ -12,9 +12,14 @@ i2c_ch = 1
 i2c_address = 0x49
 
 # MQTT Config
-mqtt_broker = "keke"
+mqtt_broker = "mqtt"
 mqtt_port = 1883
-mqtt_topic = "network_telemetry/closet_environment/voltage"
+mqtt_topic = "network_telemetry/lab/voltage"
+
+# Home Assistant auto-discovery
+mqtt_discovery_topic = "homeassistant/sensor/dc_rail_voltage/config"
+mqtt_discovery_payload = '{"device_class": "voltage", "name": "DC Rail Voltage", "unique_id": "dc_rail_voltage", "state_topic": "network_telemetry/lab/voltage"}'
+ha_discovery = True
 
 # Voltage Divider Configuration
 ## Nominal +12VDC current divided down to +2.164VDC for ADC measurement
@@ -97,6 +102,10 @@ bus.write_i2c_block_data(i2c_address, reg_config, val)
 # Read CONFIG to verify that we changed it
 val = bus.read_i2c_block_data(i2c_address, reg_config, 2)
 print("New CONFIG:", val)
+
+# Send auto-configuration topic to Home Assistant
+if ha_discovery:
+    mqtt_pub(mqtt_discovery_topic, mqtt_discovery_payload)
 
 # Publish volage every minute
 while True:
